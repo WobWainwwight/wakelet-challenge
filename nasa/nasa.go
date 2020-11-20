@@ -9,6 +9,7 @@ func GetEvents() ([]Event, error) {
 	nasaEndpoint := "https://eonet.sci.gsfc.nasa.gov/api/v3/events"
 
 	resp, err := http.Get(nasaEndpoint)
+	defer resp.Body.Close()
 
 	if err != nil {
 		return nil, err
@@ -16,10 +17,10 @@ func GetEvents() ([]Event, error) {
 
 	var eventsWrapper EventsWrapper
 
-	decodingErr := json.NewDecoder(resp.Body).Decode(&eventsWrapper)
+	jsonErr := json.NewDecoder(resp.Body).Decode(&eventsWrapper)
 
-	if decodingErr != nil {
-		return nil, decodingErr
+	if len(eventsWrapper.Events) == 0 {
+		return nil, jsonErr
 	}
 
 	return eventsWrapper.Events, nil

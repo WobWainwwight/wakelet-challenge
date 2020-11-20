@@ -26,10 +26,10 @@ type Event struct {
 		URL string `json:"url"`
 	} `json:"sources"`
 	Geometry []struct {
-		MagnitudeValue interface{} `json:"magnitudeValue"`
-		MagnitudeUnit  interface{} `json:"magnitudeUnit"`
-		Date           time.Time   `json:"date"`
-		Type           string      `json:"type"`
-		Coordinates    []float64   `json:"coordinates"`
+		MagnitudeValue float64   `json:"magnitudeValue"`
+		MagnitudeUnit  string    `json:"magnitudeUnit"`
+		Date           time.Time `json:"date"`
+		Type           string    `json:"type"`
+		Coordinates    []float64 `json:"coordinates"`
 	} `json:"geometry"`
 }
