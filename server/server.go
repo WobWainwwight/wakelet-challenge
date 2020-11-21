@@ -5,18 +5,23 @@ import (
 	"log"
 	"net/http"
 
+	"wakelet-challenge/events-repository"
 	"wakelet-challenge/nasa"
 )
 
 func main() {
-	// Add events to DynamoDb
+	// Get events
 	events, err := nasa.GetEvents()
 
 	if err != nil {
 		fmt.Print(err)
-	} else {
-		fmt.Print(events)
+		return
 	}
+
+	fmt.Print(events)
+
+	// Add to db
+	eventsrepository.Create(events)
 
 	http.HandleFunc("/events", HandleEvents)
 
