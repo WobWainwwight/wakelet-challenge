@@ -21,7 +21,7 @@ func main() {
 	fmt.Print(events)
 
 	// Add to db
-	eventsrepository.Create(events)
+	eventsrepository.CreateMany(events)
 
 	http.HandleFunc("/events", HandleEvents)
 
