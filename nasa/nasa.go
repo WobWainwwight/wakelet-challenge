@@ -19,8 +19,14 @@ func GetEvents() ([]Event, error) {
 
 	jsonErr := json.NewDecoder(resp.Body).Decode(&eventsWrapper)
 
+	// I want the every nasa event to have id = nasa_event
+	// and every EventId == nasa event id (EONET_123)
 	if len(eventsWrapper.Events) == 0 {
 		return nil, jsonErr
+	}
+
+	for i := range eventsWrapper.Events {
+		eventsWrapper.Events[i].ID = "nasa_event"
 	}
 
 	return eventsWrapper.Events, nil
