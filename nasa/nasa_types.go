@@ -13,7 +13,7 @@ type EventsWrapper struct {
 
 type Event struct {
 	ID          string `dynamodbav:"id"`
-	EventID     string `dynamodbav:"event_id" "json:"id"`
+	EventID     string `json:"id" dynamodbav:"event_id" `
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Link        string `json:"link"`
