@@ -27,9 +27,10 @@ func CreateMany(events []nasa.Event) error {
 
 	createEventBatches(events, &batches)
 
-	for _, batchInput := range batches {
+	for i, batchInput := range batches {
+		fmt.Println(i)
+		errCount := 0
 		for {
-			errCount := 0
 			_, err := context.BatchWriteItem(&batchInput)
 
 			// Try five times or until we succesfully batch write
@@ -46,22 +47,42 @@ func CreateMany(events []nasa.Event) error {
 
 func GetEvents(orderBy string) ([]nasa.Event, error) {
 	var events []nasa.Event
+	var query dynamodb.QueryInput
 
 	if orderBy == "title" {
-		byTitleErr := orderByTitle(&events)
+		byTitleErr := orderByTitle(&query)
 		if byTitleErr != nil {
 			return nil, byTitleErr
 		}
 	} else if orderBy == "time" {
-		return nil, errors.New("Not handled time yet")
+		byTimeErr := orderByTime(&query)
+		if byTimeErr != nil {
+			return nil, byTimeErr
+		}
 	} else {
 		return nil, errors.New("Can only order by time or name")
 	}
 
+	output, queryErr := context.Query(&query)
+
+	if queryErr != nil {
+		return nil, queryErr
+	}
+	if len(output.Items) == 0 {
+		return nil, nil
+	}
+	for _, item := range output.Items {
+		var event nasa.Event
+		unmarshallErr := dynamodbattribute.UnmarshalMap(item, &event)
+
+		if unmarshallErr == nil {
+			events = append(events, event)
+		}
+	}
 	return events, nil
 }
 
-func orderByTitle(events *[]nasa.Event) error {
+func orderByTitle(query *dynamodb.QueryInput) error {
 	keyCondition := expression.Key("id").Equal(expression.Value("nasa_event"))
 
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCondition).Build()
@@ -72,30 +93,42 @@ func orderByTitle(events *[]nasa.Event) error {
 	}
 
 	var limit int64 = 50
-	input := dynamodb.QueryInput{
+
+	*query = dynamodb.QueryInput{
 		TableName:                 aws.String(EventsTableName),
 		KeyConditionExpression:    expr.KeyCondition(),
 		ExpressionAttributeValues: expr.Values(),
 		ExpressionAttributeNames:  expr.Names(),
 		Limit:                     &limit,
 	}
-	output, queryErr := context.Query(&input)
 
-	if queryErr != nil {
-		return queryErr
+	return nil
+
+}
+
+func orderByTime(query *dynamodb.QueryInput) error {
+	// Use global secondary indexes
+	keyCondition := expression.Key("id").Equal(expression.Value("nasa_event"))
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCondition).Build()
+
+	if err != nil {
+		fmt.Print("expression builder error")
+		return err
 	}
 
-	if len(output.Items) == 0 {
-		return nil
-	}
+	var limit int64 = 50
+	var scanForward bool = false
+	indexName := "id-time-index"
 
-	for _, item := range output.Items {
-		var event nasa.Event
-		unmarshallErr := dynamodbattribute.UnmarshalMap(item, &event)
-
-		if unmarshallErr == nil {
-			*events = append(*events, event)
-		}
+	*query = dynamodb.QueryInput{
+		TableName:                 aws.String(EventsTableName),
+		IndexName:                 aws.String(indexName),
+		KeyConditionExpression:    expr.KeyCondition(),
+		ExpressionAttributeValues: expr.Values(),
+		ExpressionAttributeNames:  expr.Names(),
+		Limit:                     &limit,
+		ScanIndexForward:          &scanForward,
 	}
 
 	return nil
