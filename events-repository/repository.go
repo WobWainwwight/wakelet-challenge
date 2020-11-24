@@ -21,10 +21,8 @@ func CreateMany(events []nasa.Event) error {
 	if len(events) == 0 {
 		return errors.New("We need some events")
 	}
-
 	//add one nasa event
 	var batches []dynamodb.BatchWriteItemInput
-
 	createEventBatches(events, &batches)
 
 	for i, batchInput := range batches {
@@ -41,7 +39,6 @@ func CreateMany(events []nasa.Event) error {
 		}
 
 	}
-
 	return nil
 }
 

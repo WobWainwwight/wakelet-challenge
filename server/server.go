@@ -18,8 +18,6 @@ func main() {
 		return
 	}
 
-	fmt.Print(events)
-
 	// Add to db
 	eventsrepository.CreateMany(events)
 

@@ -24,7 +24,6 @@ func createEventBatches(events []nasa.Event, batches *[]dynamodb.BatchWriteItemI
 			requests = append(requests, getRequestsFromEvents(events[i:]))
 			break
 		}
-
 		i += 25
 	}
 
@@ -64,8 +63,6 @@ func getRequestsFromEvents(events []nasa.Event) []*dynamodb.WriteRequest {
 		requestPointers = append(requestPointers, &request)
 
 	}
-
-	fmt.Printf("Added %v", len(requests))
 
 	return requestPointers
 }
